@@ -8,6 +8,7 @@ namespace Microsoft.DocAsCode.Metadata.ManagedReference
     public class AbstractProjectLoader
     {
         IEnumerable<IProjectLoader> _loaders;
+        Dictionary<string, AbstractProject> _projects = new Dictionary<string, AbstractProject>();
 
         public AbstractProjectLoader(IEnumerable<IProjectLoader> loaders)
         {
@@ -16,11 +17,20 @@ namespace Microsoft.DocAsCode.Metadata.ManagedReference
 
         public AbstractProject Load(string path)
         {
+            AbstractProject p;
+            if (_projects.TryGetValue(path, out p))
+            {
+                return p;
+            }
+
             foreach (var loader in _loaders)
             {
-                var p = loader.TryLoad(path, this);
+                p = loader.TryLoad(path, this);
                 if (p != null)
+                {
+                    _projects.Add(path, p);
                     return p;
+                }
             }
             return null;
         }
